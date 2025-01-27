@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>To-Do List with Reminders</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+            width: 400px;
+             background-color: #fec27c;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 2em;
+            margin-bottom: 20px;
+            background-color: #fec27c;
+        }
+
+        .task-inputs {
+            display: flex;
+            justify-content: space-between;
+            background-color: #fec27c;
+        }
+
+        .task-inputs input, .task-inputs button {
+            padding: 10px;
+            font-size: 1em;
+             
+            
+        }
+
+        .task-list {
+            margin-top: 20px;
+        }
+
+        .task-item {
+            background-color: #f9f9f9;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .task-item.completed {
+            text-decoration: line-through;
+            background-color: #d3ffd3;
+        }
+
+        .task-item button {
+            background-color: #fec27c;
+            color: white;
+            border: none;
+            padding: 8px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        .task-item button:hover {
+            background-color:#fec27c;
+        }
+
+        .reminder-date {
+            font-style: italic;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>To-Do List</h1>
+
+    <!-- Add Task Section -->
+    <div class="task-inputs">
+        <input type="text" id="taskInput" placeholder="Enter task..." required>
+        <input type="date" id="reminderDate" required>
+        <button onclick="addTask()" >Add Task</button>
+    </div>
+
+    <!-- Task List -->
+    <div class="task-list" id="taskList" ></div>
+</div>
+
+<script>
+    // Function to load tasks from localStorage
+    function loadTasks() {
+        const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+        return tasks;
+    }
+
+    // Function to save tasks to localStorage
+    function saveTasks(tasks) {
+        localStorage.setItem('tasks', JSON.stringify(tasks));
+    }
+
+    // Function to add a task
+    function addTask() {
+        const taskInput = document.getElementById('taskInput');
+        const reminderDate = document.getElementById('reminderDate');
+        
+        if (taskInput.value === "" || reminderDate.value === "") {
+            alert("Please enter both task and reminder date.");
+            return;
+        }
+
+        // Get the existing tasks from localStorage
+        let tasks = loadTasks();
+
+        // Create a task object
+        const task = {
+            id: Date.now(),
+            description: taskInput.value,
+            reminder: reminderDate.value,
+            completed: false
+        };
+
+        // Add the new task to the tasks array
+        tasks.push(task);
+
+        // Save updated tasks to localStorage
+        saveTasks(tasks);
+
+        // Clear input fields
+        taskInput.value = "";
+        reminderDate.value = "";
+
+        // Update the task list on the page
+        displayTasks();
+    }
+
+    // Function to display tasks
+    function displayTasks() {
+        const tasks = loadTasks();
+        const taskList = document.getElementById('taskList');
+        taskList.innerHTML = ''; // Clear current list
+
+        tasks.forEach(task => {
+            const taskItem = document.createElement('div');
+            taskItem.classList.add('task-item');
+            if (task.completed) {
+                taskItem.classList.add('completed');
+            }
+
+            taskItem.innerHTML = `
+                <div>
+                    <p><strong>${task.description}</strong></p>
+                    <p class="reminder-date">Reminder: ${task.reminder}</p>
+                </div>
+                <div>
+                    <button onclick="toggleComplete(${task.id})">Mark as ${task.completed ? 'Incomplete' : 'Complete'}</button>
+                    <button onclick="deleteTask(${task.id})">Delete</button>
+                </div>
+            `;
+
+            taskList.appendChild(taskItem);
+        });
+    }
+
+    // Function to toggle task completion
+    function toggleComplete(id) {
+        const tasks = loadTasks();
+        const task = tasks.find(task => task.id === id);
+        if (task) {
+            task.completed = !task.completed;
+            saveTasks(tasks);
+            displayTasks();
+        }
+    }
+
+    // Function to delete a task
+    function deleteTask(id) {
+        let tasks = loadTasks();
+        tasks = tasks.filter(task => task.id !== id);
+        saveTasks(tasks);
+        displayTasks();
+    }
+
+    // Load tasks and display them when the page loads
+    window.onload = function() {
+        displayTasks();
+    };
+</script>
